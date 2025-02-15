@@ -8,8 +8,8 @@ module.exports = function(app) {
 
   // Enable CORS with credentials
   app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000', // Allow frontend URL from environment variables
-    credentials: true, // Allow credentials (cookies) to be sent
+    origin: [process.env.FRONTEND_URL, process.env.PRODUCTION_URL],
+    credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
   }));

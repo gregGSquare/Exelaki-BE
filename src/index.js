@@ -13,12 +13,6 @@ const port = process.env.PORT || 5000;
 // Apply middleware
 applyMiddleware(app);
 app.use(cookieParser());
-app.use(
-  cors({
-    origin: 'https://exelaki-fe.onrender.com' ||'http://localhost:3000', // Update this to match your frontend URL if different
-    credentials: true,
-  })
-);
 
 // Connect to MongoDB and ensure default categories
 connectDB().then(() => {
