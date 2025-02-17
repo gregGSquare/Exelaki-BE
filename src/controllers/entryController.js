@@ -2,17 +2,18 @@ const Entry = require('../models/Entry');
 
 // Add a new entry (Income, Expense, or Savings)
 exports.addEntry = async (req, res) => {
-  const { name, amount, category, budget } = req.body;
+  const { name, amount, categoryId, budgetId, dueDayOfMonth, flexibility, recurrence, tags } = req.body;
   try {
     const entry = new Entry({
-      user: req.user.id,
+      userId: req.user.id,
+      budgetId,
+      categoryId,
       name,
       amount,
-      category: {
-        name: category.name,
-        type: category.type,
-      },
-      budget,
+      dueDayOfMonth,
+      flexibility,
+      recurrence,
+      tags,
     });
 
     await entry.save();
@@ -42,12 +43,12 @@ exports.getEntries = async (req, res) => {
 // Edit an existing entry
 exports.editEntry = async (req, res) => {
   const { id } = req.params;
-  const { name, amount, category } = req.body;
+  const { name, amount, categoryId, budgetId, dueDayOfMonth, flexibility, recurrence, tags } = req.body;
 
   try {
     const updatedEntry = await Entry.findByIdAndUpdate(
       id,
-      { name, amount, category },
+      { name, amount, categoryId, budgetId, dueDayOfMonth, flexibility, recurrence, tags },
       { new: true }
     );
 

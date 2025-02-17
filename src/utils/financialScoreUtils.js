@@ -1,6 +1,6 @@
 const calculateTotalAmount = async (EntryModel, userId, type) => {
   const result = await EntryModel.aggregate([
-    { $match: { user: userId, 'category.type': type } },
+    { $match: { userId: userId, 'categoryId.type': type } },
     { $group: { _id: null, total: { $sum: '$amount' } } },
   ]);
 

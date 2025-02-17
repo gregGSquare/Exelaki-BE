@@ -4,13 +4,13 @@ const Entry = require('../models/Entry');  // Use the unified Entry model
 
 exports.getFinancialScore = async (req, res) => {
   try {
-    const userId = new mongoose.Types.ObjectId(req.user.id);
+    const userId = req.user.id;
 
-    // Calculate income (filtering entries with type 'IN')
-    const income = await calculateTotalAmount(Entry, userId, 'IN');
+    // Calculate income (filtering entries with type 'INCOME')
+    const income = await calculateTotalAmount(Entry, userId, 'INCOME');
 
-    // Calculate expenses (filtering entries with type 'OUT')
-    const expenses = await calculateTotalAmount(Entry, userId, 'OUT');
+    // Calculate expenses (filtering entries with type 'EXPENSE')
+    const expenses = await calculateTotalAmount(Entry, userId, 'EXPENSE');
 
     // Calculate financial score and status
     const { score, scoreStatus } = calculateFinancialScoreScore(income, expenses);

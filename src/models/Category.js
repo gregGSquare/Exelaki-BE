@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const defaultCategories = require('../constants/defaultCategories');
+const { DEFAULT_CATEGORIES } = require('../constants/defaultCategories');
 
 const CATEGORY_TYPES = {
   INCOME: 'INCOME',
@@ -26,7 +26,7 @@ const categorySchema = new mongoose.Schema({
 
 categorySchema.statics.ensureDefaults = async function () {
   try {
-    for (const category of defaultCategories) {
+    for (const category of DEFAULT_CATEGORIES) {
       await this.findOneAndUpdate(
         { name: category.name, user: null, type: category.type },
         category,
