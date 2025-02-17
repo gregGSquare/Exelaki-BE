@@ -28,11 +28,12 @@ exports.addEntry = async (req, res) => {
 exports.getEntries = async (req, res) => {
   try {
     const { budgetId } = req.query;
-    const filter = { user: req.user.id };
+    const filter = { userId: req.user.id };
     if (budgetId) {
-      filter.budget = budgetId;
+      filter.budgetId = budgetId;
     }
-    const entries = await Entry.find(filter);
+    const entries = await Entry.find(filter)
+      .populate('categoryId', 'name type');
     res.json(entries);
   } catch (err) {
     console.error('Error fetching entries:', err.message);
@@ -46,11 +47,11 @@ exports.editEntry = async (req, res) => {
   const { name, amount, categoryId, budgetId, dueDayOfMonth, flexibility, recurrence, tags } = req.body;
 
   try {
-    const updatedEntry = await Entry.findByIdAndUpdate(
-      id,
+    const updatedEntry = await Entry.findOneAndUpdate(
+      { _id: id, userId: req.user.id },
       { name, amount, categoryId, budgetId, dueDayOfMonth, flexibility, recurrence, tags },
       { new: true }
-    );
+    ).populate('categoryId', 'name type');
 
     if (!updatedEntry) {
       return res.status(404).json({ message: 'Entry not found' });
@@ -68,7 +69,10 @@ exports.deleteEntry = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const deletedEntry = await Entry.findByIdAndDelete(id);
+    const deletedEntry = await Entry.findOneAndDelete({ 
+      _id: id, 
+      userId: req.user.id 
+    });
 
     if (!deletedEntry) {
       return res.status(404).json({ message: 'Entry not found' });

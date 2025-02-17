@@ -3,17 +3,17 @@ const mongoose = require('mongoose');
 const entrySchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User id',
+    ref: 'User',
     required: true,
   },
   budgetId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Budget id',
+    ref: 'Budget',
     required: true,
   },
   categoryId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Category id',
+    ref: 'Category',
     required: true,
   },
   name: {
