@@ -13,12 +13,13 @@ exports.getCategories = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const [inCategories, outCategories] = await Promise.all([
-      getCategoriesByType(userId, 'IN'),
-      getCategoriesByType(userId, 'OUT'),
+    const [incomeCategories, expenseCategories, savingCategories] = await Promise.all([
+      getCategoriesByType(userId, 'INCOME'),
+      getCategoriesByType(userId, 'EXPENSE'),
+      getCategoriesByType(userId, 'SAVING'),
     ]);
 
-    res.json({ inCategories, outCategories });
+    res.json({ incomeCategories, expenseCategories, savingCategories });
   } catch (error) {
     console.error('Error fetching categories:', error);
     res.status(500).send('Server error');

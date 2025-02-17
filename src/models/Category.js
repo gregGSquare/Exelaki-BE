@@ -2,8 +2,9 @@ const mongoose = require('mongoose');
 const defaultCategories = require('../constants/defaultCategories');
 
 const CATEGORY_TYPES = {
-  IN: 'IN',
-  OUT: 'OUT',
+  INCOME: 'INCOME',
+  EXPENSE: 'EXPENSE',
+  SAVING: 'SAVING',
 };
 
 const categorySchema = new mongoose.Schema({
@@ -18,7 +19,7 @@ const categorySchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: [CATEGORY_TYPES.IN, CATEGORY_TYPES.OUT],
+    enum: [CATEGORY_TYPES.INCOME, CATEGORY_TYPES.EXPENSE, CATEGORY_TYPES.SAVING],
     required: true,
   },
 });

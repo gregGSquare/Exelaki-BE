@@ -21,14 +21,14 @@ const entrySchema = new mongoose.Schema({
     },
     type: {
       type: String,
-      enum: ['IN', 'OUT', 'SAVINGS'],
+      enum: ['INCOME', 'EXPENSE', 'SAVING'],
       required: true,
     },
   },
   budget: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Budget',
-    required: true,  // The entry must belong to a budget
+    required: true,
   },
   date: {
     type: Date,
