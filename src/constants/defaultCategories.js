@@ -8,8 +8,7 @@ module.exports.DEFAULT_CATEGORIES = [
     { name: 'Mobile', type: 'EXPENSE' },
     { name: 'Savings', type: 'SAVING' },
     { name: 'Loans/Credit card debt', type: 'EXPENSE' },
-    { name: 'Salary', type: 'INCOME' },
-    { name: 'Rental property', type: 'INCOME' },
+    { name: 'Income', type: 'INCOME' },
   ];
   
 const EXPENSE_FLEXIBILITY = {
