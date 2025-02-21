@@ -16,6 +16,11 @@ const entrySchema = new mongoose.Schema({
     ref: 'Category',
     required: true,
   },
+  type: {
+    type: String,
+    enum: ['INCOME', 'EXPENSE', 'SAVING'],
+    required: true,
+  },
   name: {
     type: String,
     required: true,
