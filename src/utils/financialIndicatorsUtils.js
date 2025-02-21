@@ -30,7 +30,7 @@ const calculateMonthlyDebt = async (EntryModel, userId, budgetId) => {
   const result = await EntryModel.aggregate([
     {
       $match: {
-        userId: userId,
+        userId: new mongoose.Types.ObjectId(userId),
         budgetId: mongoose.Types.ObjectId.createFromHexString(budgetId),
         tags: 'DEBT',
         recurrence: { $in: ['MONTHLY', 'QUARTERLY', 'YEARLY'] }
@@ -65,7 +65,7 @@ const calculateMonthlyIncome = async (EntryModel, userId, budgetId) => {
   const result = await EntryModel.aggregate([
     {
       $match: {
-        userId: userId,
+        userId: new mongoose.Types.ObjectId(userId),
         budgetId: mongoose.Types.ObjectId.createFromHexString(budgetId),
         type: 'INCOME',
         recurrence: { $in: ['MONTHLY', 'QUARTERLY', 'YEARLY'] }
