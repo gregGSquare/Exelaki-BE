@@ -45,8 +45,7 @@ exports.getEntries = async (req, res) => {
 // Edit an existing entry
 exports.editEntry = async (req, res) => {
   const { id } = req.params;
-  const { name, amount, categoryId, budgetId, dueDayOfMonth, flexibility, recurrence, tags } = req.body;
-
+  const { name, amount, categoryId, budgetId, dueDayOfMonth, flexibility, recurrence, tags, type } = req.body;
   try {
     const updatedEntry = await Entry.findOneAndUpdate(
       { _id: id, userId: req.user.id },
