@@ -1,4 +1,5 @@
-const { calculateDebtToIncomeRatio } = require('../utils/financialIndicatorsUtils');
+const { calculateDebtToIncomeRatio, calculateSavingsRatio, calculateCarCostRatio, calculateHomeCostRatio } = require('../utils/financialIndicatorsUtils');
+const { calculateTotalScore } = require('../utils/totalScoreCalculator');
 const Entry = require('../models/Entry');
 const Budget = require('../models/Budget');
 
@@ -13,8 +14,13 @@ exports.getFinancialIndicators = async (req, res) => {
       return res.status(404).json({ message: 'Budget not found' });
     }
 
-    // Calculate debt-to-income ratio for this budget
-    const debtToIncome = await calculateDebtToIncomeRatio(Entry, userId, budgetId);
+    const [debtToIncome, savingsRatio, carCostRatio, homeCostRatio, totalScore] = await Promise.all([
+      calculateDebtToIncomeRatio(Entry, userId, budgetId),
+      calculateSavingsRatio(Entry, userId, budgetId),
+      calculateCarCostRatio(Entry, userId, budgetId),
+      calculateHomeCostRatio(Entry, userId, budgetId),
+      calculateTotalScore(Entry, userId, budgetId)
+    ]);
 
     // Format the ratio and include status
     const formattedDebtToIncome = {
@@ -22,18 +28,32 @@ exports.getFinancialIndicators = async (req, res) => {
       status: debtToIncome.status
     };
 
-    // For debugging
-    console.log('Monthly Income:', debtToIncome.monthlyIncome);
-    console.log('Monthly Debt:', debtToIncome.monthlyDebt);
-    console.log('Ratio:', debtToIncome.ratio);
-    console.log('Status:', debtToIncome.status);
+    const formattedSavingsRatio = {
+      value: savingsRatio.ratio !== null ? `${savingsRatio.ratio}%` : 'N/A',
+      status: savingsRatio.status
+    };
+
+    const formattedCarCostRatio = {
+      value: carCostRatio.ratio !== null ? `${carCostRatio.ratio}%` : 'N/A',
+      status: carCostRatio.status
+    };
+
+    const formattedHomeCostRatio = {
+      value: homeCostRatio.ratio !== null ? `${homeCostRatio.ratio}%` : 'N/A',
+      status: homeCostRatio.status
+    };
+    
+    const formattedTotalScore = {
+      value: totalScore.score !== null ? `${totalScore.score}%` : 'N/A',
+      status: totalScore.status
+    };
 
     res.json({
-      totalScore: '75%', // Mock value
+      totalScore: formattedTotalScore,
       debtToIncomeRatio: formattedDebtToIncome,
-      savingsRate: '20.5%', // Mock value
-      carCostRatio: '15.2%', // Mock value
-      homeCostRatio: '25.8%', // Mock value
+      savingsRate: formattedSavingsRatio,
+      carCostRatio: formattedCarCostRatio,
+      homeCostRatio: formattedHomeCostRatio,
     });
   } catch (err) {
     console.error('Error calculating financial indicators:', err.message);

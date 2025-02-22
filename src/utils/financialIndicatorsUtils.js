@@ -96,6 +96,77 @@ const calculateMonthlyIncome = async (EntryModel, userId, budgetId) => {
   return result[0]?.totalMonthlyIncome || 0;
 };
 
+const calculateMonthlySavings = async (EntryModel, userId, budgetId) => {
+  const result = await EntryModel.aggregate([
+    {
+      $match: {
+        userId: new mongoose.Types.ObjectId(userId),
+        budgetId: mongoose.Types.ObjectId.createFromHexString(budgetId),
+        type: 'SAVING',
+        recurrence: { $in: ['MONTHLY', 'QUARTERLY', 'YEARLY'] }
+      }
+    },
+    {
+      $addFields: {
+        monthlyAmount: {
+          $switch: {
+            branches: [
+              { case: { $eq: ['$recurrence', 'MONTHLY'] }, then: '$amount' },
+              { case: { $eq: ['$recurrence', 'QUARTERLY'] }, then: { $divide: ['$amount', 3] } },
+              { case: { $eq: ['$recurrence', 'YEARLY'] }, then: { $divide: ['$amount', 12] } }
+            ],
+            default: '$amount'
+          }
+        }
+      }
+    },
+    {
+      $group: {
+        _id: null,
+        totalMonthlySavings: { $sum: '$monthlyAmount' }
+      }
+    }
+  ]);
+
+  return result[0]?.totalMonthlySavings || 0;
+};
+
+const calculateSavingsRatio = async (EntryModel, userId, budgetId) => {
+  const [monthlySavings, monthlyIncome] = await Promise.all([
+    calculateMonthlySavings(EntryModel, userId, budgetId),
+    calculateMonthlyIncome(EntryModel, userId, budgetId)
+  ]);
+
+  if (monthlyIncome === 0) {
+    return {
+      ratio: null,
+      status: 'NO_INCOME',
+      monthlySavings,
+      monthlyIncome
+    };
+  }
+
+  const ratio = (monthlySavings / monthlyIncome) * 100;
+
+  let status;
+  if (ratio >= 20) {
+    status = 'EXCELLENT';
+  } else if (ratio >= 15) {
+    status = 'GOOD';
+  } else if (ratio >= 10) {
+    status = 'ACCEPTABLE';
+  } else {
+    status = 'NEEDS_IMPROVEMENT';
+  }
+
+  return {
+    ratio: parseFloat(ratio.toFixed(2)),
+    status,
+    monthlySavings,
+    monthlyIncome
+  };
+};
+
 const calculateDebtToIncomeRatio = async (EntryModel, userId, budgetId) => {
   const [monthlyDebt, monthlyIncome] = await Promise.all([
     calculateMonthlyDebt(EntryModel, userId, budgetId),
@@ -130,8 +201,149 @@ const calculateDebtToIncomeRatio = async (EntryModel, userId, budgetId) => {
   };
 };
 
+const calculateMonthlyCarCosts = async (EntryModel, userId, budgetId) => {
+  const result = await EntryModel.aggregate([
+    {
+      $match: {
+        userId: new mongoose.Types.ObjectId(userId),
+        budgetId: mongoose.Types.ObjectId.createFromHexString(budgetId),
+        tags: 'TRANSPORTATION',
+        recurrence: { $in: ['MONTHLY', 'QUARTERLY', 'YEARLY'] }
+      }
+    },
+    {
+      $addFields: {
+        monthlyAmount: {
+          $switch: {
+            branches: [
+              { case: { $eq: ['$recurrence', 'MONTHLY'] }, then: '$amount' },
+              { case: { $eq: ['$recurrence', 'QUARTERLY'] }, then: { $divide: ['$amount', 3] } },
+              { case: { $eq: ['$recurrence', 'YEARLY'] }, then: { $divide: ['$amount', 12] } }
+            ],
+            default: '$amount'
+          }
+        }
+      }
+    },
+    {
+      $group: {
+        _id: null,
+        totalMonthlyCarCosts: { $sum: '$monthlyAmount' }
+      }
+    }
+  ]);
+
+  return result[0]?.totalMonthlyCarCosts || 0;
+};
+
+const calculateCarCostRatio = async (EntryModel, userId, budgetId) => {
+  const [monthlyCarCosts, monthlyIncome] = await Promise.all([
+    calculateMonthlyCarCosts(EntryModel, userId, budgetId),
+    calculateMonthlyIncome(EntryModel, userId, budgetId)
+  ]);
+
+  if (monthlyIncome === 0) {
+    return {
+      ratio: null,
+      status: 'NO_INCOME',
+      monthlyCarCosts,
+      monthlyIncome
+    };
+  }
+
+  const ratio = (monthlyCarCosts / monthlyIncome) * 100;
+
+  let status;
+  if (ratio > 28) {
+    status = 'BAD';
+  } else if (ratio > 8) {
+    status = 'OK';
+  } else {
+    status = 'GOOD';
+  }
+
+  return {
+    ratio: parseFloat(ratio.toFixed(2)),
+    status,
+    monthlyCarCosts,
+    monthlyIncome
+  };
+};
+
+const calculateMonthlyHouseCosts = async (EntryModel, userId, budgetId) => {
+  const result = await EntryModel.aggregate([
+    {
+      $match: {
+        userId: new mongoose.Types.ObjectId(userId),
+        budgetId: mongoose.Types.ObjectId.createFromHexString(budgetId),
+        tags: 'HOUSING',
+        recurrence: { $in: ['MONTHLY', 'QUARTERLY', 'YEARLY'] }
+      }
+    },
+    {
+      $addFields: {
+        monthlyAmount: {
+          $switch: {
+            branches: [
+              { case: { $eq: ['$recurrence', 'MONTHLY'] }, then: '$amount' },
+              { case: { $eq: ['$recurrence', 'QUARTERLY'] }, then: { $divide: ['$amount', 3] } },
+              { case: { $eq: ['$recurrence', 'YEARLY'] }, then: { $divide: ['$amount', 12] } }
+            ],
+            default: '$amount'
+          }
+        }
+      }
+    },
+    {
+      $group: {
+        _id: null,
+        totalMonthlyHouseCosts: { $sum: '$monthlyAmount' }
+      }
+    }
+  ]);
+
+  return result[0]?.totalMonthlyHouseCosts || 0;
+};
+
+const calculateHomeCostRatio = async (EntryModel, userId, budgetId) => {
+  const [monthlyHouseCosts, monthlyIncome] = await Promise.all([
+    calculateMonthlyHouseCosts(EntryModel, userId, budgetId),
+    calculateMonthlyIncome(EntryModel, userId, budgetId)
+  ]);
+
+  if (monthlyIncome === 0) {
+    return {
+      ratio: null,
+      status: 'NO_INCOME',
+      monthlyHouseCosts,
+      monthlyIncome
+    };
+  }
+
+  const ratio = (monthlyHouseCosts / monthlyIncome) * 100;
+
+  let status;
+  if (ratio > 28) {
+    status = 'BAD';
+  } else if (ratio > 22) {
+    status = 'OK';
+  } else {
+    status = 'GOOD';
+  }
+
+  return {
+    ratio: parseFloat(ratio.toFixed(2)),
+    status,
+    monthlyHouseCosts,
+    monthlyIncome
+  };
+};
+
 module.exports = {
   calculateTotalAmount,
   calculateFinancialScoreScore,
-  calculateDebtToIncomeRatio
+  calculateDebtToIncomeRatio,
+  calculateSavingsRatio,
+  calculateCarCostRatio,
+  calculateHomeCostRatio
 };
