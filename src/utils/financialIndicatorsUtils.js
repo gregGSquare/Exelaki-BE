@@ -339,11 +339,84 @@ const calculateHomeCostRatio = async (EntryModel, userId, budgetId) => {
   };
 };
 
+const calculateExpenseDistribution = async (EntryModel, userId, budgetId) => {
+  const result = await EntryModel.aggregate([
+    {
+      $match: {
+        userId: new mongoose.Types.ObjectId(userId),
+        budgetId: mongoose.Types.ObjectId.createFromHexString(budgetId),
+        type: 'EXPENSE',
+        recurrence: { $in: ['MONTHLY', 'QUARTERLY', 'YEARLY'] }
+      }
+    },
+    {
+      $addFields: {
+        monthlyAmount: {
+          $switch: {
+            branches: [
+              { case: { $eq: ['$recurrence', 'MONTHLY'] }, then: '$amount' },
+              { case: { $eq: ['$recurrence', 'QUARTERLY'] }, then: { $divide: ['$amount', 3] } },
+              { case: { $eq: ['$recurrence', 'YEARLY'] }, then: { $divide: ['$amount', 12] } }
+            ],
+            default: '$amount'
+          }
+        }
+      }
+    },
+    {
+      $unwind: '$tags'  // Split array of tags into separate documents
+    },
+    {
+      $group: {
+        _id: '$tags',
+        totalAmount: { $sum: '$monthlyAmount' }
+      }
+    },
+    {
+      $group: {
+        _id: null,
+        totalExpenses: { $sum: '$totalAmount' },
+        categories: { 
+          $push: { 
+            tag: '$_id', 
+            amount: '$totalAmount' 
+          } 
+        }
+      }
+    },
+    {
+      $unwind: '$categories'
+    },
+    {
+      $project: {
+        _id: 0,
+        tag: '$categories.tag',
+        percentage: {
+          $multiply: [
+            { $divide: ['$categories.amount', '$totalExpenses'] },
+            100
+          ]
+        },
+        amount: '$categories.amount'
+      }
+    },
+    {
+      $sort: { percentage: -1 }
+    }
+  ]);
+
+  return result.map(item => ({
+    ...item,
+    percentage: parseFloat(item.percentage.toFixed(2))
+  }));
+};
+
 module.exports = {
   calculateTotalAmount,
   calculateFinancialScoreScore,
   calculateDebtToIncomeRatio,
   calculateSavingsRatio,
   calculateCarCostRatio,
-  calculateHomeCostRatio
+  calculateHomeCostRatio,
+  calculateExpenseDistribution
 };
