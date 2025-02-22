@@ -3,22 +3,23 @@ const Category = require('../models/Category');
 // Helper function to get categories by type
 const getCategoriesByType = async (userId, type) => {
   const globalCategories = await Category.find({ user: null, type });
-  const userCategories = await Category.find({ user: userId, type });
+  const userCategories = await Category.find({ userId: userId, type });
   
   return [...globalCategories, ...userCategories];
 };
 
-// Get all categories (in and out)
+// Get all categories (income, expense, saving)
 exports.getCategories = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const [inCategories, outCategories] = await Promise.all([
-      getCategoriesByType(userId, 'IN'),
-      getCategoriesByType(userId, 'OUT'),
+    const [incomeCategories, expenseCategories, savingCategories] = await Promise.all([
+      getCategoriesByType(userId, 'INCOME'),
+      getCategoriesByType(userId, 'EXPENSE'),
+      getCategoriesByType(userId, 'SAVING'),
     ]);
 
-    res.json({ inCategories, outCategories });
+    res.json({ incomeCategories, expenseCategories, savingCategories });
   } catch (error) {
     console.error('Error fetching categories:', error);
     res.status(500).send('Server error');
@@ -32,14 +33,14 @@ exports.addCategory = async (req, res) => {
 
   try {
     // Check if the category already exists for the user
-    const existingCategory = await Category.findOne({ name, user: userId, type });
+    const existingCategory = await Category.findOne({ name, userId: userId, type });
 
     if (existingCategory) {
       return res.status(400).json({ message: 'Category already exists.' });
     }
 
     // Create a new category
-    const newCategory = new Category({ name, type, user: userId });
+    const newCategory = new Category({ name, type, userId: userId });
     await newCategory.save();
 
     res.status(201).json(newCategory);

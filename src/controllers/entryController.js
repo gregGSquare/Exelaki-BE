@@ -2,17 +2,19 @@ const Entry = require('../models/Entry');
 
 // Add a new entry (Income, Expense, or Savings)
 exports.addEntry = async (req, res) => {
-  const { name, amount, category, budget } = req.body;
+  const { name, amount, categoryId, budgetId, dueDayOfMonth, flexibility, recurrence, tags, type } = req.body;
   try {
     const entry = new Entry({
-      user: req.user.id,
+      userId: req.user.id,
+      budgetId,
+      categoryId,
+      type,
       name,
       amount,
-      category: {
-        name: category.name,
-        type: category.type,
-      },
-      budget,
+      dueDayOfMonth,
+      flexibility,
+      recurrence,
+      tags,
     });
 
     await entry.save();
@@ -27,11 +29,12 @@ exports.addEntry = async (req, res) => {
 exports.getEntries = async (req, res) => {
   try {
     const { budgetId } = req.query;
-    const filter = { user: req.user.id };
+    const filter = { userId: req.user.id };
     if (budgetId) {
-      filter.budget = budgetId;
+      filter.budgetId = budgetId;
     }
-    const entries = await Entry.find(filter);
+    const entries = await Entry.find(filter)
+      .populate('categoryId', 'name type');
     res.json(entries);
   } catch (err) {
     console.error('Error fetching entries:', err.message);
@@ -42,14 +45,14 @@ exports.getEntries = async (req, res) => {
 // Edit an existing entry
 exports.editEntry = async (req, res) => {
   const { id } = req.params;
-  const { name, amount, category } = req.body;
+  const { name, amount, categoryId, budgetId, dueDayOfMonth, flexibility, recurrence, tags } = req.body;
 
   try {
-    const updatedEntry = await Entry.findByIdAndUpdate(
-      id,
-      { name, amount, category },
+    const updatedEntry = await Entry.findOneAndUpdate(
+      { _id: id, userId: req.user.id },
+      { name, amount, categoryId, budgetId, dueDayOfMonth, flexibility, recurrence, tags, type },
       { new: true }
-    );
+    ).populate('categoryId', 'name type');
 
     if (!updatedEntry) {
       return res.status(404).json({ message: 'Entry not found' });
@@ -67,7 +70,10 @@ exports.deleteEntry = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const deletedEntry = await Entry.findByIdAndDelete(id);
+    const deletedEntry = await Entry.findOneAndDelete({ 
+      _id: id, 
+      userId: req.user.id 
+    });
 
     if (!deletedEntry) {
       return res.status(404).json({ message: 'Entry not found' });

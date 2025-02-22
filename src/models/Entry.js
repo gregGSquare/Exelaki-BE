@@ -1,9 +1,24 @@
 const mongoose = require('mongoose');
 
 const entrySchema = new mongoose.Schema({
-  user: {
+  userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
+    required: true,
+  },
+  budgetId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Budget',
+    required: true,
+  },
+  categoryId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category',
+    required: true,
+  },
+  type: {
+    type: String,
+    enum: ['INCOME', 'EXPENSE', 'SAVING'],
     required: true,
   },
   name: {
@@ -14,25 +29,24 @@ const entrySchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  category: {
-    name: {
-      type: String,
-      required: true,
-    },
-    type: {
-      type: String,
-      enum: ['IN', 'OUT', 'SAVINGS'],
-      required: true,
-    },
+  dueDayOfMonth: {
+    type: Number,
+    required: false,
   },
-  budget: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Budget',
-    required: true,  // The entry must belong to a budget
+  flexibility: {
+    type: String,
+    enum: ['FIXED', 'FLEXIBLE', 'OPTIONAL'],
+    required: true,
   },
-  date: {
-    type: Date,
-    default: Date.now,
+  recurrence: {
+    type: String,
+    enum: ['MONTHLY', 'QUARTERLY', 'YEARLY', 'ONE_TIME'],
+    required: true
+  },
+  tags: {
+    type: [String],
+    enum: ['HOUSING', 'UTILITIES', 'TRANSPORTATION', 'FOOD', 'DEBT', 'INSURANCE', 'SUBSCRIPTION', 'ENTERTAINMENT', 'MEDICAL', 'MISC'],
+    required: false,
   },
 }, { timestamps: true });
 
