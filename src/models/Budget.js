@@ -1,4 +1,8 @@
 const mongoose = require('mongoose');
+const currencyCodes = require('currency-codes');
+
+// Get all currency codes (e.g., 'USD', 'EUR', etc.)
+const validCurrencyCodes = currencyCodes.codes();
 
 const budgetSchema = new mongoose.Schema({
   user: {
@@ -18,6 +22,18 @@ const budgetSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  currency: {
+    type: String,
+    required: true,
+    default: 'USD',
+    enum: validCurrencyCodes,
+    validate: {
+      validator: function(code) {
+        return currencyCodes.code(code) !== undefined;
+      },
+      message: props => `${props.value} is not a valid currency code!`
+    }
+  }
 }, { timestamps: true });
 
 const Budget = mongoose.model('Budget', budgetSchema);

@@ -1,10 +1,11 @@
 const express = require('express');
 const { createBudget, getBudget, getAllBudgets, getBudgetById, deleteBudget } = require('../controllers/budgetController');
 const verifyToken = require('../middleware/authMiddleware');
+const { createBudgetValidator } = require('../validators/budgetValidator');
 
 const router = express.Router();
 
-router.post('/', verifyToken, createBudget);
+router.post('/', verifyToken, createBudgetValidator, createBudget);
 router.get('/:id', verifyToken, getBudgetById);
 router.get('/:year/:month', verifyToken, getBudget);
 router.get('/', verifyToken, (req, res, next) => {
