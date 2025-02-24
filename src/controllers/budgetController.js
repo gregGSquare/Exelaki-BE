@@ -1,9 +1,16 @@
 const Budget = require('../models/Budget');
 const Entry = require('../models/Entry');
+const { validationResult } = require('express-validator');
 
 // Create a new budget
 exports.createBudget = async (req, res) => {
-  const { name, month, year } = req.body;
+  // Check for validation errors
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { name, month, year, currency } = req.body;
   
   try {
     // Check if a budget already exists for the given month, year, and user
@@ -23,6 +30,7 @@ exports.createBudget = async (req, res) => {
       name,
       month,
       year,
+      currency: currency || 'USD', // Use provided currency or default to USD
     });
 
     await newBudget.save();
