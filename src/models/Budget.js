@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const currencyCodes = require('currency-codes');
+const BUDGET_TYPES = require('../constants/budgetTypes');
 
 // Get all currency codes (e.g., 'USD', 'EUR', etc.)
 const validCurrencyCodes = currencyCodes.codes();
@@ -33,6 +34,16 @@ const budgetSchema = new mongoose.Schema({
       },
       message: props => `${props.value} is not a valid currency code!`
     }
+  },
+  budgetType: {
+    type: String,
+    required: true,
+    enum: Object.values(BUDGET_TYPES),
+    default: BUDGET_TYPES.MONTHLY
+  },
+  description: {
+    type: String,
+    required: false
   }
 }, { timestamps: true });
 
