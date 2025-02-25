@@ -1,7 +1,7 @@
 const express = require('express');
-const { createBudget, getBudget, getAllBudgets, getBudgetById, deleteBudget } = require('../controllers/budgetController');
+const { createBudget, getBudget, getAllBudgets, getBudgetById, deleteBudget, updateBudget } = require('../controllers/budgetController');
 const verifyToken = require('../middleware/authMiddleware');
-const { createBudgetValidator } = require('../validators/budgetValidator');
+const { createBudgetValidator, updateBudgetValidator } = require('../validators/budgetValidator');
 
 const router = express.Router();
 
@@ -14,5 +14,6 @@ router.get('/', verifyToken, (req, res, next) => {
   next();
 }, getAllBudgets);  // Modified route to get all budgets for the logged-in user
 router.delete('/:id', verifyToken, deleteBudget);  // New route to delete a budget by ID
+router.put('/:id', verifyToken, updateBudgetValidator, updateBudget);
 
 module.exports = router;

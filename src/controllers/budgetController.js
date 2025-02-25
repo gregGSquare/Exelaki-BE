@@ -117,3 +117,36 @@ exports.deleteBudget = async (req, res) => {
     res.status(500).json({ error: 'Server error while deleting budget' });
   }
 };
+
+// Update a budget
+exports.updateBudget = async (req, res) => {
+  // Check for validation errors
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { id } = req.params;
+  const { name, currency } = req.body;
+  
+  try {
+    // Find the budget
+    const budget = await Budget.findById(id);
+
+    if (!budget || budget.user.toString() !== req.user.id) {
+      return res.status(404).json({ message: 'Budget not found.' });
+    }
+
+    // Update only the fields that were provided
+    if (name !== undefined) budget.name = name;
+    if (currency !== undefined) budget.currency = currency;
+
+    // Save the updated budget
+    await budget.save();
+    
+    res.status(200).json(budget);
+  } catch (err) {
+    console.error('Error updating budget:', err.message);
+    res.status(500).json({ error: 'Server error while updating budget' });
+  }
+};
