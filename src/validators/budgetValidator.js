@@ -31,4 +31,23 @@ exports.createBudgetValidator = [
       }
       return true;
     })
+];
+
+// Validator for updating a budget
+exports.updateBudgetValidator = [
+  body('name')
+    .optional()
+    .isString()
+    .withMessage('Budget name must be a string'),
+  
+  body('currency')
+    .optional()
+    .isString()
+    .withMessage('Currency must be a string')
+    .custom(value => {
+      if (!currencyCodes.code(value)) {
+        throw new Error('Invalid currency code');
+      }
+      return true;
+    })
 ]; 
