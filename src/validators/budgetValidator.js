@@ -1,5 +1,6 @@
 const { body } = require('express-validator');
 const currencyCodes = require('currency-codes');
+const BUDGET_TYPES = require('../constants/budgetTypes');
 
 // Validator for creating a budget
 exports.createBudgetValidator = [
@@ -30,7 +31,19 @@ exports.createBudgetValidator = [
         throw new Error('Invalid currency code');
       }
       return true;
-    })
+    }),
+  
+  body('budgetType')
+    .optional()
+    .isString()
+    .withMessage('Budget type must be a string')
+    .isIn(Object.values(BUDGET_TYPES))
+    .withMessage(`Budget type must be one of: ${Object.values(BUDGET_TYPES).join(', ')}`),
+  
+  body('description')
+    .optional()
+    .isString()
+    .withMessage('Description must be a string')
 ];
 
 // Validator for updating a budget

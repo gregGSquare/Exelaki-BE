@@ -1,6 +1,7 @@
 const Budget = require('../models/Budget');
 const Entry = require('../models/Entry');
 const { validationResult } = require('express-validator');
+const BUDGET_TYPES = require('../constants/budgetTypes');
 
 // Create a new budget
 exports.createBudget = async (req, res) => {
@@ -10,18 +11,22 @@ exports.createBudget = async (req, res) => {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { name, month, year, currency } = req.body;
+  const { name, month, year, currency, budgetType, description } = req.body;
   
   try {
-    // Check if a budget already exists for the given month, year, and user
-    const existingBudget = await Budget.findOne({
-      user: req.user.id,
-      month,
-      year,
-    });
+    // Only check for existing monthly budgets if this is a monthly budget
+    if (budgetType === BUDGET_TYPES.MONTHLY || !budgetType) {
+      // Check if a monthly budget already exists for the given month, year, and user
+      const existingBudget = await Budget.findOne({
+        user: req.user.id,
+        month,
+        year,
+        budgetType: BUDGET_TYPES.MONTHLY
+      });
 
-    if (existingBudget) {
-      return res.status(400).json({ message: 'Budget for this month and year already exists.' });
+      if (existingBudget) {
+        return res.status(400).json({ message: 'Monthly budget for this month and year already exists.' });
+      }
     }
 
     // Create a new budget
@@ -30,7 +35,9 @@ exports.createBudget = async (req, res) => {
       name,
       month,
       year,
-      currency: currency || 'USD', // Use provided currency or default to USD
+      currency: currency || 'USD',
+      budgetType: budgetType || BUDGET_TYPES.MONTHLY,
+      description
     });
 
     await newBudget.save();
