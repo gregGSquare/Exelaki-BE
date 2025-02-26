@@ -1,13 +1,13 @@
 const express = require('express');
-const { getCategories, addCategory } = require('../controllers/categoryController');
-const verifyToken = require('../middleware/authMiddleware');
+const { addCategory, getCategories, updateCategory, deleteCategory } = require('../controllers/categoryController');
+const { requireAuth } = require('../middleware/auth0Middleware');
 
 const router = express.Router();
 
-// Route to get all categories (both default and user-defined)
-router.get('/', verifyToken, getCategories);
-
-// Route to add a new custom category for the authenticated user
-router.post('/', verifyToken, addCategory);
+// Routes for category management
+router.post('/', requireAuth, addCategory);
+router.get('/', requireAuth, getCategories);
+router.put('/:id', requireAuth, updateCategory);
+router.delete('/:id', requireAuth, deleteCategory);
 
 module.exports = router;

@@ -6,6 +6,9 @@ const initializeRoutes = require('./config/routes');
 const Category = require('./models/Category');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
+const { auth } = require('express-openid-connect');
+const auth0Config = require('./config/auth0');
+const auth0Routes = require('./routes/auth0Routes');
 
 const PORT = process.env.PORT || 5000;
 const HEALTH_CHECK_PORT = 10000;
@@ -16,6 +19,7 @@ const app = express();
 // Apply middleware
 applyMiddleware(app);
 app.use(cookieParser());
+app.use(auth(auth0Config));
 
 // Connect to MongoDB and ensure default categories
 connectDB().then(() => {
@@ -34,8 +38,16 @@ app.get('/health', (req, res) => {
   res.status(200).send('OK');
 });
 
+// Add a simple route to check authentication status
+app.get('/auth-status', (req, res) => {
+  res.send(req.oidc.isAuthenticated() ? 'Logged in' : 'Logged out');
+});
+
 // Initialize routes
 initializeRoutes(app);
+
+// Add Auth0 routes
+app.use('/api/auth0', auth0Routes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

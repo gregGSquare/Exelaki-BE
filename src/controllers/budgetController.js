@@ -48,17 +48,14 @@ exports.createBudget = async (req, res) => {
   }
 };
 
-  
-
-// Get a budget for a specific month and year
+// Get a budget by id
 exports.getBudget = async (req, res) => {
-  const { year, month } = req.params;
+  const { budgetId } = req.params;
 
   try {
     const budget = await Budget.findOne({
-      user: req.user.id,
-      year: parseInt(year),
-      month: parseInt(month),
+      _id: budgetId,
+      user: req.user.id
     });
 
     if (!budget) {
@@ -83,42 +80,35 @@ exports.getAllBudgets = async (req, res) => {
   }
 };
 
-// Get budget by ID
-exports.getBudgetById = async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const budget = await Budget.findById(id);
-
-    if (!budget || budget.user.toString() !== req.user.id) {
-      return res.status(404).json({ message: 'Budget not found.' });
-    }
-
-    res.status(200).json(budget);
-  } catch (err) {
-    console.error('Error fetching budget by ID:', err.message);
-    res.status(500).json({ error: 'Server error while fetching budget by ID' });
-  }
-};
-
 // Delete a budget by ID
 exports.deleteBudget = async (req, res) => {
-  const { id } = req.params;
-
+  const { budgetId } = req.params;
+  
   try {
-    const budget = await Budget.findById(id);
-
-    if (!budget || budget.user.toString() !== req.user.id) {
+    const budget = await Budget.findById(budgetId);
+    
+    if (!budget) {
       return res.status(404).json({ message: 'Budget not found.' });
+    }
+    
+    // Convert both IDs to strings before comparing
+    const budgetUserId = budget.user.toString();
+    const requestUserId = req.user.id.toString();
+    
+    if (budgetUserId !== requestUserId) {
+      return res.status(403).json({ message: 'Not authorized to delete this budget' });
     }
 
     // Delete all related entries
-    await Entry.deleteMany({ budget: id });
+    const deleteEntriesResult = await Entry.deleteMany({ budgetId });
 
     // Delete the budget itself
-    await Budget.findByIdAndDelete(id);
+    await Budget.findByIdAndDelete(budgetId);
 
-    res.status(200).json({ message: 'Budget and related entries deleted successfully.' });
+    res.status(200).json({ 
+      message: 'Budget and related entries deleted successfully.',
+      entriesDeleted: deleteEntriesResult.deletedCount
+    });
   } catch (err) {
     console.error('Error deleting budget:', err.message);
     res.status(500).json({ error: 'Server error while deleting budget' });
@@ -133,15 +123,23 @@ exports.updateBudget = async (req, res) => {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { id } = req.params;
+  const { budgetId } = req.params;
   const { name, currency } = req.body;
   
   try {
     // Find the budget
-    const budget = await Budget.findById(id);
+    const budget = await Budget.findById(budgetId);
 
-    if (!budget || budget.user.toString() !== req.user.id) {
+    if (!budget) {
       return res.status(404).json({ message: 'Budget not found.' });
+    }
+    
+    // Convert both IDs to strings before comparing
+    const budgetUserId = budget.user.toString();
+    const requestUserId = req.user.id.toString();
+    
+    if (budgetUserId !== requestUserId) {
+      return res.status(403).json({ message: 'Not authorized to update this budget' });
     }
 
     // Update only the fields that were provided

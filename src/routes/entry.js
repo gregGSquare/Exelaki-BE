@@ -1,19 +1,19 @@
 const express = require('express');
 const { addEntry, getEntries, editEntry, deleteEntry } = require('../controllers/entryController');
-const verifyToken = require('../middleware/authMiddleware');
+const { requireAuth } = require('../middleware/auth0Middleware');
 
 const router = express.Router();
 
 // Route to add a new entry
-router.post('/', verifyToken, addEntry);
+router.post('/', requireAuth, addEntry);
 
 // Route to get all entries for the authenticated user
-router.get('/', verifyToken, getEntries);
+router.get('/', requireAuth, getEntries);
 
 // Route to edit an entry by ID
-router.put('/:id', verifyToken, editEntry);
+router.put('/:id', requireAuth, editEntry);
 
 // Route to delete an entry by ID
-router.delete('/:id', verifyToken, deleteEntry);
+router.delete('/:id', requireAuth, deleteEntry);
 
 module.exports = router;

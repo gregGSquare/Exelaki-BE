@@ -1,21 +1,16 @@
 const express = require('express');
-const { register, login, refreshToken } = require('../controllers/authController');
-const verifyToken = require('../middleware/authMiddleware');
+const { getProfile, getAuth0Config } = require('../controllers/auth0Controller');
+const { requireAuth } = require('../middleware/auth0Middleware');
 
 const router = express.Router();
 
-// Route to register a new user
-router.post('/register', register);
+// Auth0 routes
+router.get('/profile', requireAuth, getProfile);
+router.get('/auth0-config', getAuth0Config);
 
-// Route to log in a user
-router.post('/login', login);
-
-// Route to refresh an access token
-router.post('/refresh-token', refreshToken);
-
-// Route to verify the validity of a token
-router.get('/verify-token', verifyToken, (req, res) => {
-    res.status(200).json({ message: 'Token is valid' });
+// Test endpoint
+router.get('/test', requireAuth, (req, res) => {
+  res.json({ message: 'Authentication successful', user: req.user });
 });
 
 module.exports = router;
