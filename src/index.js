@@ -9,6 +9,7 @@ const cors = require('cors');
 const { auth } = require('express-openid-connect');
 const auth0Config = require('./config/auth0');
 const auth0Routes = require('./routes/auth0Routes');
+const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 
 const PORT = process.env.PORT || 5000;
 const HEALTH_CHECK_PORT = 10000;
@@ -20,18 +21,6 @@ const app = express();
 applyMiddleware(app);
 app.use(cookieParser());
 app.use(auth(auth0Config));
-
-// Connect to MongoDB and ensure default categories
-connectDB().then(() => {
-  Category.ensureDefaults().catch((err) => {
-    console.error('Error initializing default categories:', err);
-  });
-
-  // Start server after DB connection
-  app.listen(PORT, () => {
-    console.log(`Main server running on port ${PORT}`);
-  });
-});
 
 // Add health check endpoint
 app.get('/health', (req, res) => {
@@ -49,10 +38,26 @@ initializeRoutes(app);
 // Add Auth0 routes
 app.use('/api/auth0', auth0Routes);
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).send('Something went wrong!');
+// Error handling middleware - must be after all routes
+app.use(notFound); // Handle 404 errors for routes that don't exist
+app.use(errorHandler); // Handle all other errors
+
+// Connect to MongoDB and ensure default categories
+connectDB().then(() => {
+  Category.ensureDefaults().catch((err) => {
+    console.error('Error initializing default categories:', err);
+  });
+
+  // Start server after DB connection
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Main server running on port ${PORT}`);
+  });
+}).catch(err => {
+  console.error('Failed to connect to MongoDB:', err);
+  // Still start the server even if DB connection fails
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on port ${PORT} (DB connection failed)`);
+  });
 });
 
 // Create and start health check server
