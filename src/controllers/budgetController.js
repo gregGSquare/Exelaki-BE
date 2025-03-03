@@ -130,7 +130,7 @@ exports.updateBudget = asyncHandler(async (req, res) => {
   }
 
   const { budgetId } = req.params;
-  const { name, currency } = req.body;
+  const { name, currency, month, year, budgetType, description } = req.body;
   
   // Find the budget
   const budget = await Budget.findById(budgetId);
@@ -156,6 +156,10 @@ exports.updateBudget = asyncHandler(async (req, res) => {
   // Update only the fields that were provided
   if (name !== undefined) budget.name = name;
   if (currency !== undefined) budget.currency = currency;
+  if (month !== undefined) budget.month = month;
+  if (year !== undefined) budget.year = year;
+  if (budgetType !== undefined) budget.budgetType = budgetType;
+  if (description !== undefined) budget.description = description;
 
   // Save the updated budget
   await budget.save();
