@@ -22,6 +22,10 @@ const categorySchema = new mongoose.Schema({
     enum: [CATEGORY_TYPES.INCOME, CATEGORY_TYPES.EXPENSE, CATEGORY_TYPES.SAVING],
     required: true,
   },
+  defaultCategory: {
+    type: Boolean,
+    default: false,
+  }
 });
 
 categorySchema.statics.ensureDefaults = async function () {
@@ -29,7 +33,7 @@ categorySchema.statics.ensureDefaults = async function () {
     for (const category of DEFAULT_CATEGORIES) {
       await this.findOneAndUpdate(
         { name: category.name, user: null, type: category.type },
-        category,
+        { ...category, defaultCategory: true },
         { upsert: true }
       );
     }

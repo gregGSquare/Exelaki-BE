@@ -1,4 +1,4 @@
-const { calculateDebtToIncomeRatio, calculateSavingsRatio, calculateCarCostRatio, calculateHomeCostRatio, calculateExpenseDistribution } = require('../utils/financialIndicatorsUtils');
+const { calculateDebtToIncomeRatio, calculateSavingsRatio, calculateCarCostRatio, calculateHomeCostRatio, calculateExpenseDistribution, calculateFixedExpenses } = require('../utils/financialIndicatorsUtils');
 const { calculateTotalScore } = require('../utils/totalScoreCalculator');
 const Entry = require('../models/Entry');
 const Budget = require('../models/Budget');
@@ -14,13 +14,14 @@ exports.getFinancialIndicators = async (req, res) => {
       return res.status(404).json({ message: 'Budget not found' });
     }
 
-    const [debtToIncome, savingsRatio, carCostRatio, homeCostRatio, totalScore, expenseDistribution] = await Promise.all([
+    const [debtToIncome, savingsRatio, carCostRatio, homeCostRatio, totalScore, expenseDistribution, fixedExpenses] = await Promise.all([
       calculateDebtToIncomeRatio(Entry, userId, budgetId),
       calculateSavingsRatio(Entry, userId, budgetId),
       calculateCarCostRatio(Entry, userId, budgetId),
       calculateHomeCostRatio(Entry, userId, budgetId),
       calculateTotalScore(Entry, userId, budgetId),
-      calculateExpenseDistribution(Entry, userId, budgetId)
+      calculateExpenseDistribution(Entry, userId, budgetId),
+      calculateFixedExpenses(Entry, userId, budgetId)
     ]);
 
     // Format the ratio and include status
@@ -43,6 +44,11 @@ exports.getFinancialIndicators = async (req, res) => {
       value: homeCostRatio.ratio !== null ? `${homeCostRatio.ratio}%` : 'N/A',
       status: homeCostRatio.status
     };
+
+    const formattedFixedExpenses = {
+      value: fixedExpenses.monthlyFixedExpenses.toFixed(2),
+      status: fixedExpenses.status
+    };
     
     const formattedTotalScore = {
       value: totalScore.score !== null ? `${totalScore.score}%` : 'N/A',
@@ -55,6 +61,7 @@ exports.getFinancialIndicators = async (req, res) => {
       savingsRate: formattedSavingsRatio,
       carCostRatio: formattedCarCostRatio,
       homeCostRatio: formattedHomeCostRatio,
+      fixedExpenses: formattedFixedExpenses,
       expenseDistribution
     });
   } catch (err) {

@@ -207,7 +207,7 @@ const calculateMonthlyCarCosts = async (EntryModel, userId, budgetId) => {
       $match: {
         userId: new mongoose.Types.ObjectId(userId),
         budgetId: mongoose.Types.ObjectId.createFromHexString(budgetId),
-        tags: 'TRANSPORTATION',
+        tags: 'CAR',
         recurrence: { $in: ['MONTHLY', 'QUARTERLY', 'YEARLY'] }
       }
     },
@@ -411,6 +411,95 @@ const calculateExpenseDistribution = async (EntryModel, userId, budgetId) => {
   }));
 };
 
+const calculateFixedExpenses = async (EntryModel, userId, budgetId) => {
+  const result = await EntryModel.aggregate([
+    {
+      $match: {
+        userId: new mongoose.Types.ObjectId(userId),
+        budgetId: mongoose.Types.ObjectId.createFromHexString(budgetId),
+        type: 'EXPENSE',
+        flexibility: 'FIXED',
+        recurrence: { $in: ['MONTHLY', 'QUARTERLY', 'YEARLY'] }
+      }
+    },
+    {
+      $addFields: {
+        monthlyAmount: {
+          $switch: {
+            branches: [
+              { case: { $eq: ['$recurrence', 'MONTHLY'] }, then: '$amount' },
+              { case: { $eq: ['$recurrence', 'QUARTERLY'] }, then: { $divide: ['$amount', 3] } },
+              { case: { $eq: ['$recurrence', 'YEARLY'] }, then: { $divide: ['$amount', 12] } }
+            ],
+            default: '$amount'
+          }
+        }
+      }
+    },
+    {
+      $group: {
+        _id: null,
+        totalFixedExpenses: { $sum: '$monthlyAmount' }
+      }
+    }
+  ]);
+
+  const monthlyFixedExpenses = result[0]?.totalFixedExpenses || 0;
+
+  // Determine status based on absolute amount
+  let status;
+  if (monthlyFixedExpenses >= 5000) {
+    status = 'CRITICAL';
+  } else if (monthlyFixedExpenses >= 3000) {
+    status = 'HIGH';
+  } else if (monthlyFixedExpenses >= 1500) {
+    status = 'MODERATE';
+  } else {
+    status = 'GOOD';
+  }
+
+  return {
+    monthlyFixedExpenses,
+    status
+  };
+};
+
+const calculateFixedExpensesRatio = async (EntryModel, userId, budgetId) => {
+  const [monthlyFixedExpenses, monthlyIncome] = await Promise.all([
+    calculateFixedExpenses(EntryModel, userId, budgetId),
+    calculateMonthlyIncome(EntryModel, userId, budgetId)
+  ]);
+
+  if (monthlyIncome === 0) {
+    return {
+      ratio: null,
+      status: 'NO_INCOME',
+      monthlyFixedExpenses,
+      monthlyIncome
+    };
+  }
+
+  const ratio = (monthlyFixedExpenses / monthlyIncome) * 100;
+
+  let status;
+  if (ratio >= 80) {
+    status = 'CRITICAL';
+  } else if (ratio >= 60) {
+    status = 'HIGH';
+  } else if (ratio >= 40) {
+    status = 'MODERATE';
+  } else {
+    status = 'GOOD';
+  }
+
+  return {
+    ratio: parseFloat(ratio.toFixed(2)),
+    status,
+    monthlyFixedExpenses,
+    monthlyIncome
+  };
+};
+
 module.exports = {
   calculateTotalAmount,
   calculateFinancialScoreScore,
@@ -418,5 +507,6 @@ module.exports = {
   calculateSavingsRatio,
   calculateCarCostRatio,
   calculateHomeCostRatio,
-  calculateExpenseDistribution
+  calculateExpenseDistribution,
+  calculateFixedExpenses
 };

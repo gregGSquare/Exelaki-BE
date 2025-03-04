@@ -45,7 +45,7 @@ const entrySchema = new mongoose.Schema({
   },
   tags: {
     type: [String],
-    enum: ['HOUSING', 'UTILITIES', 'TRANSPORTATION', 'FOOD', 'DEBT', 'INSURANCE', 'SUBSCRIPTION', 'ENTERTAINMENT', 'MEDICAL', 'MISC'],
+    enum: ['HOUSING', 'UTILITIES', 'TRANSPORTATION', 'FOOD', 'DEBT', 'INSURANCE', 'SUBSCRIPTION', 'ENTERTAINMENT', 'MEDICAL', 'CAR', 'MISC'],
     required: false,
   },
 }, { timestamps: true });

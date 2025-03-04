@@ -1,4 +1,5 @@
 const Category = require('../models/Category');
+const Entry = require('../models/Entry');
 
 // Helper function to get categories by type
 const getCategoriesByType = async (userId, type) => {
@@ -39,8 +40,13 @@ exports.addCategory = async (req, res) => {
       return res.status(400).json({ message: 'Category already exists.' });
     }
 
-    // Create a new category
-    const newCategory = new Category({ name, type, userId: userId });
+    // Create a new category with defaultCategory set to false
+    const newCategory = new Category({ 
+      name, 
+      type, 
+      userId: userId,
+      defaultCategory: false 
+    });
     await newCategory.save();
 
     res.status(201).json(newCategory);
@@ -56,8 +62,26 @@ exports.deleteCategory = async (req, res) => {
     // Find the category
     const category = await Category.findById(req.params.id);
     
-    if (!category || category.user.toString() !== req.user.id) {
+    if (!category) {
       return res.status(404).json({ message: 'Category not found' });
+    }
+
+    // Prevent deletion of default categories
+    if (!category.user) {
+      return res.status(403).json({ message: 'Cannot delete default categories' });
+    }
+    
+    // Check if user owns this category
+    if (category.user.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Not authorized to delete this category' });
+    }
+
+    // Check if category is being used by any entries
+    const entriesUsingCategory = await Entry.findOne({ categoryId: category._id });
+    if (entriesUsingCategory) {
+      return res.status(400).json({ 
+        message: 'Cannot delete category that is being used by entries. Please reassign or delete those entries first.' 
+      });
     }
     
     // Delete the category

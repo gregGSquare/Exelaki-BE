@@ -5,9 +5,9 @@ module.exports.DEFAULT_CATEGORIES = [
     { name: 'Insurances', type: 'EXPENSE' },
     { name: 'Subscriptions', type: 'EXPENSE' },
     { name: 'Car', type: 'EXPENSE' },
-    { name: 'Mobile', type: 'EXPENSE' },
+    { name: 'Utilities', type: 'EXPENSE' },
     { name: 'Savings', type: 'SAVING' },
-    { name: 'Loans/Credit card debt', type: 'EXPENSE' },
+    { name: 'Loans and Credit card debt', type: 'EXPENSE' },
     { name: 'Income', type: 'INCOME' },
   ];
   
