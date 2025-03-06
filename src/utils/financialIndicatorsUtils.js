@@ -445,58 +445,31 @@ const calculateFixedExpenses = async (EntryModel, userId, budgetId) => {
   ]);
 
   const monthlyFixedExpenses = result[0]?.totalFixedExpenses || 0;
+  const monthlyIncome = await calculateMonthlyIncome(EntryModel, userId, budgetId);
 
-  // Determine status based on absolute amount
+  // Determine status based on percentage of income
   let status;
-  if (monthlyFixedExpenses >= 5000) {
-    status = 'CRITICAL';
-  } else if (monthlyFixedExpenses >= 3000) {
-    status = 'HIGH';
-  } else if (monthlyFixedExpenses >= 1500) {
-    status = 'MODERATE';
+  let ratio = 0;
+  
+  if (monthlyIncome > 0) {
+    ratio = (monthlyFixedExpenses / monthlyIncome) * 100;
+    
+    if (ratio >= 70) {
+      status = 'CRITICAL';
+    } else if (ratio >= 50) {
+      status = 'HIGH';
+    } else if (ratio >= 30) {
+      status = 'MODERATE';
+    } else {
+      status = 'GOOD';
+    }
   } else {
-    status = 'GOOD';
+    status = 'NO_INCOME';
   }
 
   return {
     monthlyFixedExpenses,
     status
-  };
-};
-
-const calculateFixedExpensesRatio = async (EntryModel, userId, budgetId) => {
-  const [monthlyFixedExpenses, monthlyIncome] = await Promise.all([
-    calculateFixedExpenses(EntryModel, userId, budgetId),
-    calculateMonthlyIncome(EntryModel, userId, budgetId)
-  ]);
-
-  if (monthlyIncome === 0) {
-    return {
-      ratio: null,
-      status: 'NO_INCOME',
-      monthlyFixedExpenses,
-      monthlyIncome
-    };
-  }
-
-  const ratio = (monthlyFixedExpenses / monthlyIncome) * 100;
-
-  let status;
-  if (ratio >= 80) {
-    status = 'CRITICAL';
-  } else if (ratio >= 60) {
-    status = 'HIGH';
-  } else if (ratio >= 40) {
-    status = 'MODERATE';
-  } else {
-    status = 'GOOD';
-  }
-
-  return {
-    ratio: parseFloat(ratio.toFixed(2)),
-    status,
-    monthlyFixedExpenses,
-    monthlyIncome
   };
 };
 

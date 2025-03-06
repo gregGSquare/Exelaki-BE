@@ -130,6 +130,103 @@ Future Enhancements
 
 -   **Improved Logging**: Implement a more comprehensive logging system for easier debugging and monitoring.
 
+Financial Indicators
+-------------------
+
+The application calculates several financial indicators to help users assess their financial health. Below is a detailed overview of each indicator, how it's calculated, and the thresholds used to determine status.
+
+### 1. Fixed Expenses Ratio
+
+**Calculation**: Monthly fixed expenses divided by monthly income, expressed as a percentage.
+
+**Data Points**:
+- Monthly Fixed Expenses: Sum of all expenses marked as "FIXED" flexibility, converted to monthly amounts
+- Monthly Income: Sum of all income entries, converted to monthly amounts
+
+**Status Thresholds**:
+| Ratio | Status | Description |
+|-------|--------|-------------|
+| ≥ 70% | CRITICAL | Fixed expenses consume most of your income, leaving little flexibility |
+| ≥ 50% | HIGH | Fixed expenses are a significant portion of your income |
+| ≥ 30% | MODERATE | Fixed expenses are a moderate portion of your income |
+| < 30% | GOOD | Fixed expenses are a small portion of your income |
+| No Income | NO_INCOME | Cannot calculate ratio without income |
+
+### 2. Debt-to-Income Ratio
+
+**Calculation**: Monthly debt payments divided by monthly income, expressed as a percentage.
+
+**Data Points**:
+- Monthly Debt: Sum of all expenses tagged as "DEBT", converted to monthly amounts
+- Monthly Income: Sum of all income entries, converted to monthly amounts
+
+**Status Thresholds**:
+| Ratio | Status | Description |
+|-------|--------|-------------|
+| ≥ 30% | BAD | Debt payments are too high relative to income |
+| ≤ 30% | ACCEPTABLE | Debt payments are within acceptable limits |
+| < 28% | GOOD | Debt payments are well-managed relative to income |
+| No Income | NO_INCOME | Cannot calculate ratio without income |
+
+### 3. Savings Ratio
+
+**Calculation**: Monthly savings divided by monthly income, expressed as a percentage.
+
+**Data Points**:
+- Monthly Savings: Sum of all entries of type "SAVING", converted to monthly amounts
+- Monthly Income: Sum of all income entries, converted to monthly amounts
+
+**Status Thresholds**:
+| Ratio | Status | Description |
+|-------|--------|-------------|
+| ≥ 20% | EXCELLENT | Exceptional savings rate |
+| ≥ 15% | GOOD | Healthy savings rate |
+| ≥ 10% | ACCEPTABLE | Adequate savings rate |
+| < 10% | NEEDS_IMPROVEMENT | Savings rate should be increased |
+| No Income | NO_INCOME | Cannot calculate ratio without income |
+
+### 4. Home Cost Ratio
+
+**Calculation**: Monthly housing costs divided by monthly income, expressed as a percentage.
+
+**Data Points**:
+- Monthly Housing Costs: Sum of all expenses tagged as "HOUSING", converted to monthly amounts
+- Monthly Income: Sum of all income entries, converted to monthly amounts
+
+**Status Thresholds**:
+| Ratio | Status | Description |
+|-------|--------|-------------|
+| > 28% | BAD | Housing costs are too high relative to income |
+| > 22% | OK | Housing costs are within acceptable limits |
+| ≤ 22% | GOOD | Housing costs are well-managed relative to income |
+| No Income | NO_INCOME | Cannot calculate ratio without income |
+
+### 5. Car Cost Ratio
+
+**Calculation**: Monthly car costs divided by monthly income, expressed as a percentage.
+
+**Data Points**:
+- Monthly Car Costs: Sum of all expenses tagged as "TRANSPORTATION", converted to monthly amounts
+- Monthly Income: Sum of all income entries, converted to monthly amounts
+
+**Status Thresholds**:
+| Ratio | Status | Description |
+|-------|--------|-------------|
+| > 28% | BAD | Car costs are too high relative to income |
+| > 8% | OK | Car costs are within acceptable limits |
+| ≤ 8% | GOOD | Car costs are well-managed relative to income |
+| No Income | NO_INCOME | Cannot calculate ratio without income |
+
+### 6. Expense Distribution
+
+**Calculation**: Percentage breakdown of expenses by category.
+
+**Data Points**:
+- Monthly expenses grouped by tag categories
+- Percentage of total expenses for each category
+
+**Output**: List of categories with their respective percentages and amounts.
+
 Contributing
 ------------
 

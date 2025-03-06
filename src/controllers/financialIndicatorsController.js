@@ -27,27 +27,31 @@ exports.getFinancialIndicators = async (req, res) => {
     // Format the ratio and include status
     const formattedDebtToIncome = {
       value: debtToIncome.ratio !== null ? `${debtToIncome.ratio}%` : 'N/A',
-      status: debtToIncome.status
+      status: debtToIncome.status,
+      amount: debtToIncome.monthlyDebt.toFixed(2)
     };
 
     const formattedSavingsRatio = {
       value: savingsRatio.ratio !== null ? `${savingsRatio.ratio}%` : 'N/A',
-      status: savingsRatio.status
+      status: savingsRatio.status,
+      amount: savingsRatio.monthlySavings.toFixed(2)
     };
 
     const formattedCarCostRatio = {
       value: carCostRatio.ratio !== null ? `${carCostRatio.ratio}%` : 'N/A',
-      status: carCostRatio.status
+      status: carCostRatio.status,
+      amount: carCostRatio.monthlyCarCosts.toFixed(2)
     };
 
     const formattedHomeCostRatio = {
       value: homeCostRatio.ratio !== null ? `${homeCostRatio.ratio}%` : 'N/A',
-      status: homeCostRatio.status
+      status: homeCostRatio.status,
+      amount: homeCostRatio.monthlyHouseCosts.toFixed(2)
     };
 
     const formattedFixedExpenses = {
       value: fixedExpenses.monthlyFixedExpenses.toFixed(2),
-      status: fixedExpenses.status
+      status: fixedExpenses.status,
     };
     
     const formattedTotalScore = {
